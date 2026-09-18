@@ -3,3 +3,5 @@ reportlab
 notion-client
 python-dotenv
 requests
+cryptography>=42
+cffi>=1.16
