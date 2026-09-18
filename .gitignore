@@ -1,0 +1,13 @@
+# 비밀 정보 - 절대 커밋 금지
+.env
+credentials.json
+token.json
+
+# 작업 공간 - 임시 파일, 언제든 삭제 가능
+.tmp/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
