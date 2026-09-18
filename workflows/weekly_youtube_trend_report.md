@@ -94,6 +94,10 @@ python tools/youtube_search.py --output .tmp/videos_20260921.json
 python tools/generate_pdf_report.py --analysis .tmp/analysis_20260921.json --videos .tmp/videos_20260921.json --output .tmp/weekly_report_20260921.pdf
 ```
 
+이 단계에서 `tools/generate_charts.py`가 색약 안전 팔레트(Okabe-Ito)를 적용한
+막대그래프 2개(포맷별 평균 조회수, 키워드별 평균 조회수)를 자동으로 만들어서
+PDF에 삽입한다. 별도로 실행할 필요 없음 — `generate_pdf_report.py`가 알아서 호출한다.
+
 ### 4단계 — 노션에 누적 기록
 
 ```

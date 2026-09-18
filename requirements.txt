@@ -5,3 +5,5 @@ python-dotenv
 requests
 cryptography>=42
 cffi>=1.16
+matplotlib
+Pillow

@@ -35,6 +35,7 @@ from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (
+    Image,
     ListFlowable,
     ListItem,
     PageBreak,
@@ -44,6 +45,17 @@ from reportlab.platypus import (
     Table,
     TableStyle,
 )
+
+from PIL import Image as PILImage
+
+from generate_charts import render_format_chart, render_keyword_chart
+
+
+def _image_flowable(path: Path, width: float) -> Image:
+    """PNG의 원본 가로세로 비율을 유지하면서 지정된 폭에 맞춘 Image flowable을 만든다."""
+    with PILImage.open(path) as img:
+        aspect = img.height / img.width
+    return Image(str(path), width=width, height=width * aspect)
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -104,8 +116,11 @@ def build_trending_topics(story, analysis: dict):
         story.append(Spacer(1, 4))
 
 
-def build_format_insights(story, analysis: dict):
+def build_format_insights(story, analysis: dict, chart_path: Path | None):
     story.append(Paragraph("잘 되는 포맷 분석", STYLES["h1"]))
+    if chart_path and chart_path.exists():
+        story.append(_image_flowable(chart_path, width=150 * mm))
+        story.append(Spacer(1, 6))
     insights = analysis.get("format_insights", {})
     rows = [
         ["구분", "영상 수", "평균 조회수"],
@@ -139,6 +154,14 @@ def build_format_insights(story, analysis: dict):
     story.append(table)
     story.append(Spacer(1, 8))
     story.append(Paragraph(insights.get("notes", ""), STYLES["body"]))
+
+
+def build_keyword_chart(story, chart_path: Path | None):
+    if not chart_path or not chart_path.exists():
+        return
+    story.append(Paragraph("키워드별 성과", STYLES["h1"]))
+    story.append(_image_flowable(chart_path, width=150 * mm))
+    story.append(Spacer(1, 6))
 
 
 def build_recommendations(story, analysis: dict):
@@ -199,6 +222,11 @@ def main():
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
+    chart_dir = output_path.parent / "charts"
+    chart_dir.mkdir(parents=True, exist_ok=True)
+    format_chart_path = render_format_chart(videos, chart_dir / f"{output_path.stem}_format.png")
+    keyword_chart_path = render_keyword_chart(videos, chart_dir / f"{output_path.stem}_keywords.png")
+
     doc = SimpleDocTemplate(
         str(output_path),
         pagesize=A4,
@@ -213,7 +241,8 @@ def main():
     build_title_page(story, analysis)
     build_summary(story, analysis)
     build_trending_topics(story, analysis)
-    build_format_insights(story, analysis)
+    build_keyword_chart(story, keyword_chart_path)
+    build_format_insights(story, analysis, format_chart_path)
     build_recommendations(story, analysis)
     build_appendix(story, videos)
 
